@@ -16,7 +16,7 @@
                        // Specify the keyboard library to use (currently only Keyboard.h is supported)
                        // If not specified, macros such as PRESS_A cannot be used. (You will need to implement them yourself according to the library you are using.)
 
-#include "MacroPad.h"
+#include <MacroPad.h>
 
 // マトリクスキーボードの行と列に使用するピンを指定(今回は3x4を想定、4x4の場合は一行無視することでこのサンプルコードのまま試せます。)
 // Specify the pins to be used for the rows and columns of the matrix keyboard (3x4 is assumed in this case; if 4x4, you can try this sample code as is by ignoring one row).

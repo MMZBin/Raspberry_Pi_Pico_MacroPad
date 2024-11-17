@@ -1,7 +1,7 @@
 // シリアル出力のみを行うサンプル
 // Sample for serial output only.
 
-#include "MacroPad.h"
+#include <MacroPad.h>
 
 uint8_t rowPins[] = { 0, 1, 2 };
 uint8_t colPins[] = { 3, 4, 5, 6 };
