@@ -117,7 +117,3 @@ For platforms like AVR microcontrollers that do not support STL by default, addi
     - `KeyAssign reset()`
         - Returns a macro that returns to the previous layer.
         - Example: ```layer.reset()```
-
---- 
-
-Let me know if you'd like further adjustments or clarifications!
