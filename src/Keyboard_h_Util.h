@@ -13,4 +13,24 @@ inline KeyAssign pressTo(uint8_t pressKey) {
     };
 }
 
+inline KeyAssign mod(uint8_t tap, uint8_t hold) {
+    return [tap, hold](Key key) {
+        if (key.hasOccurred(Key::Event::TAP)) {
+            Keyboard.press(tap);
+            Keyboard.release(tap);
+        } else {
+            if (key.hasOccurred(Key::Event::HOLD)) {
+                Keyboard.press(hold);
+            }
+            if (key.hasOccurred(Key::Event::RELEASED)) {
+                Keyboard.release(hold);
+            }
+
+        }
+    };
+}
+
+inline KeyAssign combo(uint8_t a, uint8_t b, )
+
 #endif
+

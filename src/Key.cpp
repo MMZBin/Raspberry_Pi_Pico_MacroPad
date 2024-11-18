@@ -28,8 +28,8 @@
 /* public */
 
 Key::Key()
- : lastTransTime_(0), countOfClick_(0), index_(0),
-   isPressBak_(false), isHandled_(false), isLongPressed_(false), isInitialized_(false), hasOccurred_(0), callback_() {}
+ : lastTransTime_(0), countOfClick_(0), eventFlags_(0), index_(0),
+   hasOccurred_(0), callback_() {}
 
 void Key::registerMacro(const KeyAssign func) { callback_ = func; }
 void Key::removeMacro() { registerMacro(nullptr); }
@@ -41,14 +41,16 @@ void Key::emulate(const Event type) {
 void Key::update(const bool isPressed) {
     hasOccurred_ = 0;
 
-    uint32_t now = millis();
+    const uint32_t now = millis();
+    const uint32_t elapsedTime = now - lastTransTime_;
 
-    if (now - lastTransTime_ >= debounceTime_) {
-        if (isPressed) { onPress(now); }
-        else { onRelease(now); }
+    if (elapsedTime >= debounceTime_) {
+        if (isPressed) { onPress(now, elapsedTime); }
+        else { onRelease(now, elapsedTime); }
     }
 
-    isPressBak_ = isPressed; //前回の値を更新
+    //isPressBak_ = isPressed; // 前回の値を更新
+    setFlag(EventFlag::PRESS_BAK, isPressed);
 }
 
 void Key::invoke() const {
@@ -62,4 +64,5 @@ uint8_t Key::getCountOfClick() const { return countOfClick_; }
 
 uint32_t Key::longThreshold_ = 500;
 uint32_t Key::doubleThreshold_ = 200;
+uint32_t Key::holdThreshold_ = 200;
 uint32_t Key::debounceTime_ = 20;

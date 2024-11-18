@@ -4,6 +4,8 @@
 #include <array>
 #include "Key.h"
 
+#define NONE nullptr
+
 constexpr uint8_t BASE = 0;
 
 template<uint8_t NUM_OF_KEYS, uint8_t NUM_OF_LAYERS>

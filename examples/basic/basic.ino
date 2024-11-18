@@ -43,7 +43,7 @@ void setup() {
 
     // キーを長押しと判定する時間、ダブルクリックと判定する猶予、デバウンス時間を設定することが出来ます。
     // You can set the time to judge a key as a long press, grace to judge a key as a double click, and debounce time.
-    // Key::init(1000, 500, 10);
+    // Key::init(1000, 500, 200, 10);
 
     // ｢test｣という名前のカスタムマクロ(関数)を設定する
     // Set up a custom macro (function) named "test"
