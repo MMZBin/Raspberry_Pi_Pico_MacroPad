@@ -62,8 +62,10 @@ public:
     void update() {
         keyReader_.read();
 
+        uint32_t now = millis();
+
         for (uint16_t i = 0; i < NUM_OF_KEYS; i++) {
-            KEYS[i].update(KEY_STATE_DATA[i / ReaderData::READ_BITS_ZERO_INDEXING] & (1 << (i % ReaderData::READ_BITS_ZERO_INDEXING)));
+            KEYS[i].update(KEY_STATE_DATA[i / ReaderData::READ_BITS_ZERO_INDEXING] & (1 << (i % ReaderData::READ_BITS_ZERO_INDEXING)), now);
         }
 
         for (uint16_t i = 0; i < NUM_OF_KEYS; i++) {

@@ -37,10 +37,9 @@ void Key::removeMacro() { registerMacro(nullptr); }
 void Key::emulate(const Event type) { hasOccurred_ |= (1 << static_cast<uint8_t>(type)); }
 void Key::clear(const Event type) { hasOccurred_ &= ~(1 << static_cast<uint8_t>(type)); }
 
-void Key::update(const bool isPressed) {
+void Key::update(const bool isPressed, const uint32_t now) {
     hasOccurred_ = 0;
 
-    const uint32_t now = millis();
     const uint32_t elapsedTime = now - lastTransTime_;
 
     if (elapsedTime >= DEBOUNCE_TIME) {

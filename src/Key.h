@@ -72,7 +72,7 @@ public:
     void emulate(const Event type);
     void clear(const Event type);
 
-    void update(const bool isPressed);  //状態を更新する
+    void update(const bool isPressed, const uint32_t now);  //状態を更新する
 
     void invoke() const;
 
