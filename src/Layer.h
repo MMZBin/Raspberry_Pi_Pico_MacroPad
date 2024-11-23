@@ -2,7 +2,10 @@
 #define MMZ_LAYER_H
 
 #include <array>
+#include <vector>
+
 #include "Key.h"
+//#include "Combo.h"
 
 #define NONE nullptr
 
@@ -14,7 +17,7 @@ public:
     using LayerCallback = std::function<void(uint8_t)>;
 
     Layer(std::array<Key, NUM_OF_KEYS>& keys, LayerCallback onLayerChange=nullptr)
-     : keys_(keys), onLayerChange_(onLayerChange), currentLayer_(0), preLayer_(0) {}
+     : keys_(keys),onLayerChange_(onLayerChange), currentLayer_(0), preLayer_(0) {}
 
     void init(LayeredKeymap<NUM_OF_KEYS, NUM_OF_LAYERS> layeredKeymap) {
         layers_ = layeredKeymap;
@@ -38,6 +41,7 @@ public:
 private:
     LayeredKeymap<NUM_OF_KEYS, NUM_OF_LAYERS> layers_;
     std::array<Key, NUM_OF_KEYS>& keys_;
+    //ComboManager<NUM_OF_KEYS> combos_;
     LayerCallback onLayerChange_;
     uint8_t currentLayer_, preLayer_;
 };

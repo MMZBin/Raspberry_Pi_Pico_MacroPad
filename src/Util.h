@@ -13,21 +13,21 @@ class LayerUtil {
 public:
     LayerUtil(Layer<NUM_OF_KEYS, NUM_OF_LAYERS>& layer) : layer_(layer) {}
 
-    inline KeyAssign to(uint8_t layer) {
+    inline Macro to(uint8_t layer) {
         return [this, layer](Key key) {
             if (key.hasOccurred(Key::Event::RISING_EDGE)) {
                 layer_.set(layer);
             }
         };
     }
-    inline KeyAssign back(uint8_t layer) {
+    inline Macro back(uint8_t layer) {
         return [this, layer](Key key) {
             if (key.hasOccurred(Key::Event::FALLING_EDGE)) {
                 layer_.set(layer);
             }
         };
     }
-    inline KeyAssign reset() {
+    inline Macro reset() {
         return [this](Key key) {
             if (key.hasOccurred(Key::Event::RISING_EDGE)) {
                 layer_.reset();

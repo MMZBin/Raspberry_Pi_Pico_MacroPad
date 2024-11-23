@@ -3,7 +3,7 @@
 
 #include "Key.h"
 
-inline KeyAssign pressTo(uint8_t pressKey) {
+inline Macro pressTo(uint8_t pressKey) {
     return [pressKey](Key key) {
         if (key.hasOccurred(Key::Event::RISING_EDGE)) {
             Keyboard.press(pressKey);
@@ -13,7 +13,7 @@ inline KeyAssign pressTo(uint8_t pressKey) {
     };
 }
 
-inline KeyAssign mod(uint8_t tap, uint8_t hold) {
+inline Macro mod(uint8_t tap, uint8_t hold) {
     return [tap, hold](Key key) {
         if (key.hasOccurred(Key::Event::TAP)) {
             Keyboard.press(tap);
@@ -22,15 +22,24 @@ inline KeyAssign mod(uint8_t tap, uint8_t hold) {
             if (key.hasOccurred(Key::Event::HOLD)) {
                 Keyboard.press(hold);
             }
-            if (key.hasOccurred(Key::Event::RELEASED)) {
+            if (key.hasOccurred(Key::Event::FALLING_EDGE)) {
                 Keyboard.release(hold);
             }
-
+        }
+    };
+}
+inline Macro mod(Macro tap, Macro hold) {
+    return [tap, hold](Key key) {
+        if (key.hasOccurred(Key::Event::TAP)) {
+            tap(key);
+        } else if (key.hasOccurred(Key::Event::HOLD)) {
+            hold(key);
         }
     };
 }
 
-inline KeyAssign combo(uint8_t a, uint8_t b, )
+
+//inline Macro combo(uint8_t a, uint8_t b, )
 
 #endif
 

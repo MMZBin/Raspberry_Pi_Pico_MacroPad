@@ -30,14 +30,16 @@
 
 class Key;
 
-using KeyAssign = std::function<void(Key)>;
+using Macro = std::function<void(Key)>;
 template<uint16_t NUM_OF_KEYS>
-using Keymap = std::array<KeyAssign, NUM_OF_KEYS>;
+using Keymap = std::array<Macro, NUM_OF_KEYS>;
 template <uint16_t NUM_OF_KEYS, uint8_t NUM_OF_LAYERS>
 using LayeredKeymap = std::array<Keymap<NUM_OF_KEYS>, NUM_OF_LAYERS>;
 
 class Key {
 public:
+    static uint32_t LONG_THRESHOLD, DOUBLE_THRESHOLD, HOLD_THRESHOLD, DEBOUNCE_TIME;
+
     // イベントの種類
     // (排他)とついているイベントは同時にどれか一つしか発生しません。
     // Only one of the events marked with (exclusive) can occur at a time.
@@ -56,18 +58,19 @@ public:
 
     void static init(const uint32_t longThreshold=500, const uint32_t doubleThreshold=100,
                      const uint32_t holdThreshold=200, const uint32_t debounceTime=20) {
-        longThreshold_ = longThreshold;
-        doubleThreshold_ = doubleThreshold;
-        holdThreshold_ = holdThreshold;
-        debounceTime_ = debounceTime;
+        LONG_THRESHOLD = longThreshold;
+        DOUBLE_THRESHOLD = doubleThreshold;
+        HOLD_THRESHOLD = holdThreshold;
+        DEBOUNCE_TIME = debounceTime;
     }
 
     Key();
 
-    void registerMacro(const KeyAssign callback);
+    void registerMacro(const Macro callback);
     void removeMacro();
 
     void emulate(const Event type);
+    void clear(const Event type);
 
     void update(const bool isPressed);  //状態を更新する
 
@@ -95,7 +98,8 @@ private:
         HANDLED,
         LONG_HANDLED,
         HOLD_HANDLED,
-        INITIALIZED
+        INITIALIZED,
+        ONE_TIME_DISABLED
     };
 
     inline void onPress(const uint32_t now, const uint32_t elapsedTime) {
@@ -104,14 +108,14 @@ private:
         //立ち上がりエッジのときの処理
         if (!getFlag(EventFlag::PRESS_BAK)) { onRisingEdge(now); }
 
-        if (((now - lastTransTime_) >= holdThreshold_) && (!getFlag(EventFlag::HOLD_HANDLED))) {
+        if (((now - lastTransTime_) >= HOLD_THRESHOLD) && (!getFlag(EventFlag::HOLD_HANDLED))) {
             emit(Event::HOLD);
             //isHoldPressed_ = true;
             setFlag(EventFlag::HOLD_HANDLED, true);
         }
 
         //長押し判定の時間を過ぎたら
-        if ((!getFlag(EventFlag::HANDLED)) && (now - lastTransTime_ > longThreshold_)) {
+        if ((!getFlag(EventFlag::HANDLED)) && (now - lastTransTime_ > LONG_THRESHOLD)) {
             emit(Event::LONG);
             // isHandled_ = true;
             // isLongPressed_ = true;
@@ -124,7 +128,7 @@ private:
         emit(Event::RELEASED);
 
         //時間を過ぎた&ダブルクリック待ち(再度押されなかったとき)
-        if (elapsedTime > doubleThreshold_) {
+        if (elapsedTime > DOUBLE_THRESHOLD) {
             if (((countOfClick_ == 1)) && (!getFlag(EventFlag::LONG_HANDLED))) {
                 emit(Event::SINGLE);
             }
@@ -158,7 +162,7 @@ private:
         emit(Event::FALLING_EDGE);
         emit(Event::CHANGE_INPUT);
 
-        if (elapsedTime < holdThreshold_) {
+        if (elapsedTime < HOLD_THRESHOLD) {
             emit(Event::TAP);
         }
 
@@ -177,7 +181,6 @@ private:
         else { eventFlags_ &= ~(1 << static_cast<uint8_t>(flag)); }
     }
 
-    static uint32_t longThreshold_, doubleThreshold_, holdThreshold_, debounceTime_;
     static constexpr uint8_t NUM_OF_EVENTS = 8;
 
     //bool isPressBak_, isHandled_, isLongPressed_, isHoldPressed_, isInitialized_;
@@ -188,7 +191,7 @@ private:
 
     uint16_t hasOccurred_; //0番目のビットが短押し,1番目のビットが長押し...のように対応している
 
-    KeyAssign callback_;
+    Macro callback_;
 };
 
 #endif

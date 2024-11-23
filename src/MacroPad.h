@@ -27,29 +27,28 @@
 
 #include <Arduino.h>
 
-#include "MatrixKeypad.h"
+#include "KeyReader/KeyReader.h"
 #include "Key.h"
 #include "Delay.h"
 #include "Layer.h"
 #include "Util.h"
+#include "Combo.h"
 
 #define Do [](Key key)
 
-template<uint8_t NUM_OF_LAYERS, uint8_t ROWS, uint8_t COLS>
+template<uint8_t NUM_OF_KEYS, uint8_t NUM_OF_LAYERS = 1>
 class MacroPad {
 public:
-    static constexpr uint16_t NUM_OF_KEYS = ROWS * COLS;
+    //static constexpr uint16_t NUM_OF_KEYS = ROWS * COLS;
     static constexpr uint8_t getNumOfLayers() { return NUM_OF_LAYERS; }
 
-    MacroPad(uint8_t (&rowPins)[ROWS], uint8_t (&colPins)[COLS])
-     : keyboard_(rowPins, colPins),
+    MacroPad(KeyReader<NUM_OF_KEYS>& keyReader)
+     : keyReader_(keyReader), KEY_STATE_DATA(keyReader_.getStateData()),
        LAYERS(Layer<NUM_OF_KEYS, NUM_OF_LAYERS>(KEYS)) {
         static_assert((NUM_OF_LAYERS > 0), "'NUM_OF_LAYERS' must be 1 or greater.");
-        static_assert((ROWS > 0), "'ROWS' must be 1 or greater.");
-        static_assert((COLS > 0), "'COLS' must be 1 or greater.");
         static_assert((NUM_OF_KEYS < UINT16_MAX), "The total number of keys (including invalid keys) must be 65535 or less.");
 
-        for (uint16_t i = 0; i < ROWS * COLS; i++) {
+        for (uint16_t i = 0; i < NUM_OF_KEYS; i++) {
             KEYS[i].setIndex(i);
         }
     }
@@ -61,11 +60,10 @@ public:
     }
 
     void update() {
-        static constexpr uint8_t READ_BITS_ZERO_INDEXING =  MatrixKeypad<ROWS, COLS>::READ_BITS_ZERO_INDEXING;
-        uint32_t (&isPressed)[MatrixKeypad<ROWS, COLS>::KEYBOARD_SIZE] = keyboard_.read();
+        keyReader_.read();
 
         for (uint16_t i = 0; i < NUM_OF_KEYS; i++) {
-            KEYS[i].update(isPressed[i / READ_BITS_ZERO_INDEXING] & (1 << (i % READ_BITS_ZERO_INDEXING)));
+            KEYS[i].update(KEY_STATE_DATA[i / ReaderData::READ_BITS_ZERO_INDEXING] & (1 << (i % ReaderData::READ_BITS_ZERO_INDEXING)));
         }
 
         for (uint16_t i = 0; i < NUM_OF_KEYS; i++) {
@@ -82,7 +80,11 @@ public:
     Layer<NUM_OF_KEYS, NUM_OF_LAYERS> LAYERS;
 
 private:
-    MatrixKeypad<ROWS, COLS> keyboard_;
+    //constexpr uint16_t NUM_OF_KEYS;
+
+    KeyReader<NUM_OF_KEYS>& keyReader_;
+    const uint32_t (&KEY_STATE_DATA)[ReaderData::calcKeyboardSize<NUM_OF_KEYS>()];
+    //ComboManager<NUM_OF_KEYS> combos_;
 };
 
 #endif

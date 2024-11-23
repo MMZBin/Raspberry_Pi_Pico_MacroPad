@@ -31,12 +31,11 @@ Key::Key()
  : lastTransTime_(0), countOfClick_(0), eventFlags_(0), index_(0),
    hasOccurred_(0), callback_() {}
 
-void Key::registerMacro(const KeyAssign func) { callback_ = func; }
+void Key::registerMacro(const Macro func) { callback_ = func; }
 void Key::removeMacro() { registerMacro(nullptr); }
 
-void Key::emulate(const Event type) {
-    hasOccurred_ |= (1 << static_cast<uint8_t>(type));
-}
+void Key::emulate(const Event type) { hasOccurred_ |= (1 << static_cast<uint8_t>(type)); }
+void Key::clear(const Event type) { hasOccurred_ &= ~(1 << static_cast<uint8_t>(type)); }
 
 void Key::update(const bool isPressed) {
     hasOccurred_ = 0;
@@ -44,7 +43,7 @@ void Key::update(const bool isPressed) {
     const uint32_t now = millis();
     const uint32_t elapsedTime = now - lastTransTime_;
 
-    if (elapsedTime >= debounceTime_) {
+    if (elapsedTime >= DEBOUNCE_TIME) {
         if (isPressed) { onPress(now, elapsedTime); }
         else { onRelease(now, elapsedTime); }
     }
@@ -62,7 +61,7 @@ bool Key::hasOccurred(const Event type) const { return hasOccurred_ & (1 << stat
 uint32_t Key::getStateDuration() const { return millis() - lastTransTime_; }
 uint8_t Key::getCountOfClick() const { return countOfClick_; }
 
-uint32_t Key::longThreshold_ = 500;
-uint32_t Key::doubleThreshold_ = 200;
-uint32_t Key::holdThreshold_ = 200;
-uint32_t Key::debounceTime_ = 20;
+uint32_t Key::LONG_THRESHOLD = 500;
+uint32_t Key::DOUBLE_THRESHOLD = 200;
+uint32_t Key::HOLD_THRESHOLD = 200;
+uint32_t Key::DEBOUNCE_TIME = 20;

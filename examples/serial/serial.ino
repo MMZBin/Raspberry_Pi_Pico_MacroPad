@@ -1,6 +1,7 @@
 // シリアル出力のみを行うサンプル
 // Sample for serial output only.
 
+#include <KeyReader/Matrix.h>
 #include <MacroPad.h>
 
 uint8_t rowPins[] = { 0, 1, 2 };
@@ -10,9 +11,9 @@ constexpr uint8_t NUM_OF_LAYERS = 2;
 constexpr uint8_t ROWS          = 3;
 constexpr uint8_t COLS          = 4;
 
-MacroPad<NUM_OF_LAYERS, ROWS, COLS> macroPad(rowPins, colPins);
-
-LayerUtil<ROWS * COLS, NUM_OF_LAYERS> layer = macroPad.getLayerUtil();
+auto matrix = Matrix(rowPins, colPins);
+MacroPad<matrix.getNumOfKeys(), 2> macroPad(matrix);
+auto layer = macroPad.getLayerUtil();
 
 void setup() {
     Serial.begin(9600);
@@ -45,7 +46,7 @@ void setup() {
 
     // レイヤー0のとき1番目のキーが押されたら"test"マクロが実行され、レイヤー1のとき1番目のキーが押されたら"greet"マクロが実行される
     // If the first key is pressed on layer 0, the "test" macro is executed; if the first key is pressed on layer 1, the "greet" macro is executed.
-    LayeredKeymap<ROWS * COLS, NUM_OF_LAYERS> layers = {{
+    LayeredKeymap<matrix.getNumOfKeys(), NUM_OF_LAYERS> layers = {{
         //レイヤー0(ベース) Layer 0 (base)
         {{
             test   , NONE   , NONE   ,

@@ -22,21 +22,19 @@
     SOFTWARE.
 */
 
-#ifndef MMZ_MATRIX_KEYPAD_H
-#define MMZ_MATRIX_KEYPAD_H
+#ifndef MMZ_MATRIX_H
+#define MMZ_MATRIX_H
 
 #include <Arduino.h>
+#include "KeyReader.h"
 
 template<uint8_t ROWS, uint8_t COLS>
-class MatrixKeypad {
+class Matrix : public KeyReader<ROWS * COLS> {
 public:
-    static constexpr uint8_t READ_BITS = 32;
-    static constexpr uint8_t READ_BITS_ZERO_INDEXING = READ_BITS - 1;
-    static constexpr uint8_t KEYBOARD_SIZE = (((ROWS * COLS) + (READ_BITS) - 1) / (READ_BITS));
-
-    MatrixKeypad(uint8_t (&rowPins)[ROWS], uint8_t (&colPins)[COLS]) {
-        memcpy(ROW_PINS, rowPins, sizeof(rowPins));
-        memcpy(COL_PINS, colPins, sizeof(colPins));
+    Matrix(uint8_t (&rowPins)[ROWS], uint8_t (&colPins)[COLS])
+     : ROW_PINS(rowPins), COL_PINS(colPins), keys_{} {
+        // memcpy(ROW_PINS, rowPins, sizeof(rowPins));
+        // memcpy(COL_PINS, colPins, sizeof(colPins));
 
         for (uint8_t pin : ROW_PINS) {
             pinMode(pin, OUTPUT);
@@ -48,33 +46,29 @@ public:
         }
     }
 
-    uint32_t (&read())[KEYBOARD_SIZE] {
-        static uint32_t keys[KEYBOARD_SIZE] = {};
+    uint32_t (&getStateData())[KeyReader<ROWS * COLS>::KEYBOARD_SIZE] { return keys_; }
 
+    void read() {
         uint16_t index = 0;
 
         for (const uint8_t rowPin : ROW_PINS) {
             digitalWrite(rowPin, LOW);
             for (const uint8_t colPin : COL_PINS) {
                 //The status is written in order from LSB, and the index of keys is increased by one for each READ_BIT (32 in this case).
-                //If the 33rd key is pressed, index / READ_BITS = 1, index % READ_BITS - 1 = 2, so the second bit of the second element is 1.
-                if (digitalRead(colPin)) {
-                    keys[index / READ_BITS] &= ~(1 << (index % READ_BITS_ZERO_INDEXING));
-                } else {
-                    keys[index / READ_BITS] |= (1 << (index % READ_BITS_ZERO_INDEXING));
-                }
+                //If the 33rd key is pressed, index / Matrix::READ_BITS = 1, index % Matrix::READ_BITS - 1 = 2, so the second bit of the second element is 1.
+                ReaderData::setState(keys_, index, !digitalRead(colPin));
 
                 index++;
             }
             digitalWrite(rowPin, HIGH);
         }
-
-        return keys;
     }
 
 private:
-    uint8_t ROW_PINS[ROWS];
-    uint8_t COL_PINS[COLS];
+    const uint8_t (&ROW_PINS)[ROWS];
+    const uint8_t (&COL_PINS)[COLS];
+
+    uint32_t keys_[KeyReader<ROWS * COLS>::KEYBOARD_SIZE];
 };
 
 #endif

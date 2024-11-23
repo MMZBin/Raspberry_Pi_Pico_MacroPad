@@ -13,7 +13,7 @@ AVRマイコンなどデフォルトで対応していないプラットフォ�
 
 ## 機能
 - `Do`
-    - カスタムマクロを完結に定義できるようにするマクロです。
+    - カスタムマクロを簡潔に定義できるようにするマクロです。
     - `Key`型の`key`という引数をとります。
     - 例: ```Do { Keyboard.print("Hello, world!"); }```
 - `After`
@@ -58,13 +58,14 @@ AVRマイコンなどデフォルトで対応していないプラットフォ�
             |LONG|長押しした時(排他)|
             |DOUBLE|短い間隔で2回連打した時(排他)|
             |TAP|短く一回押した時|
+            |HOLD|長押しした時|
             |RISING_EDGE|キーが押された瞬間|
             |FALLING_EDGE|キーが離された瞬間|
             |CHANGE_INPUT|キーの入力が切り替わった瞬間|
             |PRESSED|キーが押されている間|
             |RELEASED|キーが離されている間|
         - `SINGLE`, `DOUBLE`, `LONG`は互いに排他的に動作します。(一度にどれか一つしか発生しません。)
-            - 具体的には、`SINGLE`はキーが離された後ダブルクリックされないか待機してからイベントが発生しますが、`TAP`はキーが離された瞬間にイベントが発生します。
+            - 例えば、`SINGLE`はキーが離された後ダブルクリックされないか待機してからイベントが発生しますが、`TAP`はキーが離された瞬間にイベントが発生します。
 
     - `init(longThreshold, doubleThreshold, holdThreshold, debounceTime)`
         - 長押しと判定する時間、ダブルクリックと判定する猶予、ホールドと判定する時間、デバウンス時間を指定します。
@@ -97,7 +98,36 @@ AVRマイコンなどデフォルトで対応していないプラットフォ�
 
 - パラメータを取るマクロを定義したい場合、__マクロとなる関数を返す関数(クロージャ)__ の形で定義する必要があります。
 
-### `macroDelay(ms, func)`関数
+- カスタムマクロの例:
+```cpp
+// キーが離されたときに"Hello, world!"と入力するマクロ
+auto greet = Do {
+    if (key.hasOccurred(Key::Event::FALLING_EDGE)) {
+        Keyboard.println("Hello, world!");
+    }
+};
+// もちろん、通常の関数を使用して定義することも出来ます。
+void greet(Key key) {
+    if (key.hasOccurred(Key::Event::FALLING_EDGE)) {
+        Keyboard.println("Hello, world!");
+    }
+}
+```
+- パラメータを取るカスタムマクロの例
+```cpp
+// そのキーが押されている間、指定した文字を入力するマクロ
+inline Macro pressTo(uint8_t pressKey) {
+    return [pressKey](Key key) {
+        if (key.hasOccurred(Key::Event::RISING_EDGE)) {
+            Keyboard.press(pressKey);
+        } else if (key.hasOccurred(Key::Event::FALLING_EDGE)) {
+            Keyboard.release(pressKey);
+        }
+    };
+}
+```
+
+#### `macroDelay(ms, func)`関数
 - マクロ内で一定時間遅延させたい処理がある場合に使用します。
 - 第一引数に待機時間(ミリ秒)、第二引数に実行させたい関数を渡します。
 - 第二引数の関数は`After`マクロを使用して定義すると簡潔に表記できます。
@@ -128,3 +158,21 @@ AVRマイコンなどデフォルトで対応していないプラットフォ�
     - `KeyAssign reset()`
         - 一つ前のレイヤーに戻るマクロを返します。
         - 例: ```layer.reset()```
+
+### キー入力の処理について
+- このライブラリのキー入力はプラグイン式になっているため、`KeyReader`クラスを継承することでカスタムのキー入力アルゴリズムを定義することが出来ます。
+    - `MacroPad`クラスのコンストラクタに渡したインスタンスがキー入力の読み取りに使用されます。
+
+- キー入力を格納するデータ構造は符号なし32ビット整数型の一次配列となっていて、ビットごとに各キーの入力状態を表します。(一要素につき32キーまで)
+    - ビットのインデックスはキーマップのインデックスと対応します。
+        - つまり、キーマップの0番目のキーは0番目の要素の0ビット目にあたります。
+
+#### `KeyReader`クラス
+- 抽象クラスです。
+- このクラスを継承したクラスがキー入力を管理します。
+- `uint32_t (&getStateData())[KEYBOARD_SIZE]`メソッド
+    - キー入力のデータを格納する配列の参照を返します。
+- `void read()`メソッド
+    - キー入力の状態を更新します。
+    - `MacroPad`インスタンスの`update()`メソッドが呼び出されるたびに実行されます。
+    - `MacroPad`インスタンスはこのメソッドを実行した後に`getStateData()`メソッドで返された配列を確認し、各キーのイベントをチェックします。

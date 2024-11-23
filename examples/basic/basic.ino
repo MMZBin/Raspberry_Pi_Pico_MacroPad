@@ -16,6 +16,8 @@
                        // Specify the keyboard library to use (currently only Keyboard.h is supported)
                        // If not specified, macros such as PRESS_A cannot be used. (You will need to implement them yourself according to the library you are using.)
 
+#include <KeyReader/Matrix.h> // キーマトリクス配線の場合。直接接続する場合は"Direct.h"を使用します。
+                              // For key matrix wiring. Use "Direct.h" if you want to connect directly.
 #include <MacroPad.h>
 
 // マトリクスキーボードの行と列に使用するピンを指定(今回は3x4を想定、4x4の場合は一行無視することでこのサンプルコードのまま試せます。)
@@ -32,11 +34,12 @@ constexpr uint8_t COLS          = 4; // 列の数(1~255)
 
 // マクロパッドに対応するインスタンスを生成
 // Create an instance corresponding to the macro pad
-MacroPad<NUM_OF_LAYERS, ROWS, COLS> macroPad(rowPins, colPins);
+auto matrix = Matrix(rowPins, colPins);
+MacroPad<matrix.getNumOfKeys(), 2> macroPad(matrix);
 
 // レイヤーの移動を楽にする機能を使用できるようにする(任意)
 // Enable functions that make it easier to move layers (optional)
-LayerUtil<ROWS * COLS, NUM_OF_LAYERS> layer = macroPad.getLayerUtil();
+auto layer = macroPad.getLayerUtil();
 
 void setup() {
     Keyboard.begin();
@@ -99,7 +102,7 @@ void setup() {
     // At layer 0, if the first key is pressed, the "test" macro is executed, If the second key is pressed, the "PRESS_A" macro is executed... and so on.
     // The 12th "layer.to(1)" macro moves to layer 1.
     // Specify NONE (nullptr) for keys that are not used.
-    LayeredKeymap<ROWS * COLS, NUM_OF_LAYERS> layers = {{
+    LayeredKeymap<matrix.getNumOfKeys(), NUM_OF_LAYERS> layers = {{
         //レイヤー0(ベース) Layer 0 (base)
         {{
             test   , PRESS_A, PRESS_B,
@@ -112,7 +115,7 @@ void setup() {
             greet  , PRESS_K, PRESS_L,
             PRESS_M, PRESS_N, PRESS_O,
             PRESS_P, PRESS_Q, PRESS_R,
-            PRESS_S, NONE   , layer.reset()
+            PRESS_S, mod('a', 'b'), layer.reset()
         }}
     }};
 
