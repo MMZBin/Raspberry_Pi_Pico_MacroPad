@@ -63,7 +63,9 @@ void setup() {
         }}
     }};
 
-    macroPad.init(layers);
+    ProfiledLayers<matrix.getNumOfKeys(), NUM_OF_LAYERS, 1> profiles = { layers };
+
+    macroPad.init(profiles);
 }
 
 void loop() {

@@ -167,7 +167,6 @@ inline Macro pressTo(uint8_t pressKey) {
 
 ### プロファイル機能について
 - 使い方は概ねレイヤー機能と同じです。
-    - プロファイル機能を使用する時は、`MacroPad::init()`の代わりに`MacroPad::initWithProfiles()`に`ProfiledLayers`型(レイヤーの配列)を渡します。
     - `MacroPad::PROFILES`からアクセスします。
 
 ### キー入力の処理について

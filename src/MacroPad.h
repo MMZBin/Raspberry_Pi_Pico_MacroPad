@@ -53,11 +53,8 @@ public:
         }
     }
 
-    void init(LayeredKeymap<NUM_OF_KEYS, NUM_OF_LAYERS> layeredKeymap) {
-        LAYERS.setProfile(layeredKeymap);
-    }
 
-    void initWithProfiles(ProfiledLayers<NUM_OF_KEYS, NUM_OF_LAYERS, NUM_OF_PROFILES> profiledLayers) {
+    void init(ProfiledLayers<NUM_OF_KEYS, NUM_OF_LAYERS, NUM_OF_PROFILES> profiledLayers) {
         PROFILES.init(profiledLayers);
     }
 

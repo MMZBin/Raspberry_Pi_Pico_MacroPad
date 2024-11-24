@@ -199,7 +199,6 @@ inline Macro pressTo(uint8_t pressKey) {
 
 ### Profile Features
 - Usage is similar to layers.
-    - Use `MacroPad::initWithProfiles()` instead of `MacroPad::init()` and pass a `ProfiledLayers` type (array of layers).
     - Access profiles through `MacroPad::PROFILES`.
 
 ---

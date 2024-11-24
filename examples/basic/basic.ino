@@ -119,8 +119,12 @@ void setup() {
         }}
     }};
 
-    macroPad.init(layers); // キーマップをマクロパッドに登録する
-                           // Register keymap to macro pad.
+    // プロファイルを生成する
+    // Generate the profile
+    ProfiledLayers<matrix.getNumOfKeys(), NUM_OF_LAYERS, 1> profiles = { layers };
+
+    macroPad.init(profiles); // キーマップをマクロパッドに登録する
+                             // Register keymap to macro pad.
 }
 
 void loop() {
