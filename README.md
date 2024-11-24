@@ -13,96 +13,119 @@ This README assumes the use of `Keyboard.h`, so for detailed information about k
 __This library uses STL, so it only works in environments where STL is supported.__
 For platforms like AVR microcontrollers that do not support STL by default, additional library installation may be required.
 
+# Documentation Translation
+
+## Overview
+- Reads key inputs from a key matrix, directly connected buttons, or custom wiring and manages events.
+- Each key can be assigned a macro, and custom macros can also be defined.
+- Layers enable seamless switching of key mappings.
+- Profiles allow easy switching between sets of layers.
+
 ## Features
-- `Do`
-    - A macro that allows concise definition of custom macros.
-    - Takes an argument `key` of type `Key`.
-    - Example: ```Do { Keyboard.print("Hello, world!"); }```
 
-- `After`
-    - A macro for easily defining content to execute after a delay using the `macroDelay()` function.
-    - Captures the `key` from the outer scope.
-    - Example: ```macroDelay(1000, After { Keyboard.print("Hello, world!"); });```
+### `Do`
+- A macro that enables concise definition of custom macros.
+- Accepts a `Key`-type argument named `key`.
+- Example:
+  ```cpp
+  Do { Keyboard.print("Hello, world!"); }
+  ```
 
-- `NONE`
-    - An alias for `nullptr`.
-    - Used to indicate an invalid key assignment.
+### `After`
+- A macro for easily defining actions to execute after a delay set with the `macroDelay()` function.
+- Captures the `key` variable from the outer scope.
+- Example:
+  ```cpp
+  macroDelay(1000, After { Keyboard.print("Hello, world!"); });
+  ```
 
-- `pressTo(keycode)`
-    - Returns a macro that sends a character to the PC while the key is held down, functioning like a regular keyboard key.
-    - Works only with supported HID libraries (currently only `Keyboard.h`).
+### `NONE`
+- Simply an alias for `nullptr`.
+- Used to indicate an invalid key assignment.
 
-- `mod(keycode, keycode)`
-    - Returns a macro that inputs the first argument when the key is tapped and the second argument when the key is held.
-    - Works only with supported HID libraries (currently only `Keyboard.h`).
+### `pressTo(keycode)`
+- Returns a macro that sends a key's character to the PC while the key is held down, like a standard keyboard.
+- Works only with supported HID libraries (currently `Keyboard.h`).
 
-- `PRESS_A, PRESS_B,...`
-    - Simple wrappers for the `pressTo()` function.
+### `mod(keycode, keycode)`
+- Returns a macro that sends the first argument's keycode when tapped and the second argument's keycode when held.
+- Works only with supported HID libraries (currently `Keyboard.h`).
+
+### `PRESS_A, PRESS_B,...`
+- Simple wrappers for the `pressTo()` function.
+
+---
 
 ## About `MacroPad`
 - The central class of this library.
-    - `init(LayeredKeymap)`
-        - Registers a keymap to the macro pad.
-        - Must be executed during initialization.
-    - `KEYS`
-        - An array of `Key` objects corresponding to all keys.
-    - `LAYERS`
-        - An object of the `Layer` class that manages layers.
+  - `init(LayeredKeymap)`
+    - Registers a keymap with the MacroPad.
+    - Must be called during initialization.
+  - `KEYS`
+    - An array of `Key` objects corresponding to all keys.
+  - `LAYERS`
+    - Manages layers via the `Layer` class.
+
+---
 
 ## About `Key`
-- In this library, each key is assigned a `Key` object, which manages the state of each key.
-- Below is a partial excerpt of the interface:
+- Each key in the library is assigned a `Key` object, which manages its state.
+- A selection of the interface is described below:
 
-    - `Event` Enumeration
-        - Represents events occurring on each key.
-            | Event Name       | Condition                                         |
-            |------------------|--------------------------------------------------|
-            | SINGLE           | Pressed briefly once (mutually exclusive)        |
-            | LONG             | Long press (mutually exclusive)                  |
-            | DOUBLE           | Double-pressed in a short interval (mutually exclusive) |
-            | TAP              | Briefly pressed once                             |
-            | HOLD             | Long press                                       |
-            | RISING_EDGE      | Key pressed momentarily                          |
-            | FALLING_EDGE     | Key released momentarily                         |
-            | CHANGE_INPUT     | Key input state changed                          |
-            | PRESSED          | While the key is pressed                         |
-            | RELEASED         | While the key is released                        |
-        - `SINGLE`, `DOUBLE`, and `LONG` operate mutually exclusively (only one occurs at a time).
-            - For example, `SINGLE` waits to ensure there’s no double-click before triggering the event after the key is released, while `TAP` triggers the event the moment the key is released.
+### `Event` Enumeration
+- Represents events occurring on each key:
+    | Event Name      | Condition                                |
+    |-----------------|------------------------------------------|
+    | SINGLE          | Single short press (exclusive)          |
+    | LONG            | Long press (exclusive)                  |
+    | DOUBLE          | Double press in quick succession (exclusive) |
+    | TAP             | Single short press                      |
+    | HOLD            | Long press                              |
+    | RISING_EDGE     | When the key is pressed                 |
+    | FALLING_EDGE    | When the key is released                |
+    | CHANGE_INPUT    | When the input state changes            |
+    | PRESSED         | While the key is pressed                |
+    | RELEASED        | While the key is released               |
 
-    - `init(longThreshold, doubleThreshold, holdThreshold, debounceTime)`
-        - Specifies the time thresholds for recognizing a long press, double-click, hold, and debounce.
-        - Example: `Key::init(1000, 500, 10);`
-    - `bool hasOccurred(Key::Event)`
-        - Checks whether the specified event has occurred for the key.
-        - Example: `key.hasOccurred(Key::Event::SINGLE)`
-    - `uint32_t getStateDuration()`
-        - Returns the elapsed time in milliseconds since the last input state change.
-        - Example: `key.getStateDuration()`
-    - `uint8_t getCountOfClick()`
-        - Returns how many times the key was clicked in succession.
-        - Resets if the interval exceeds `doubleThreshold`.
-        - Using this method, you can define individual events for up to 255 successive clicks.
-    - `bool isPressed()`
-        - Returns whether the key is currently pressed.
-        - Equivalent to `hasOccurred(Key::Event::PRESSED)`.
-    - `uint32_t getPressTime()`
-        - Returns the duration the key has been pressed.
-        - Returns `0` if the key is not pressed.
-    - `uint16_t getIndex()`
-        - Returns the key’s index.
+- `SINGLE`, `DOUBLE`, and `LONG` are mutually exclusive (only one occurs at a time).
+    - For instance, `SINGLE` occurs after waiting to confirm no double press, while `TAP` occurs immediately upon release.
+
+### Key Methods
+- `init(longThreshold, doubleThreshold, holdThreshold, debounceTime)`
+    - Defines thresholds for detecting long presses, double presses, hold actions, and debounce intervals.
+    - Example: `Key::init(1000, 500, 10);`
+- `bool hasOccurred(Key::Event)`
+    - Checks if the specified event has occurred for the key.
+    - Example: `key.hasOccurred(Key::Event::SINGLE)`
+- `uint32_t getStateDuration()`
+    - Returns the time in milliseconds since the last input state change.
+    - Example: `key.getStateDuration()`
+- `uint8_t getCountOfClick()`
+    - Returns the number of times the key has been clicked.
+    - Resets if the interval exceeds `doubleThreshold`.
+    - Allows events for up to 255 clicks.
+- `bool isPressed()`
+    - Returns whether the key is pressed.
+    - Equivalent to `hasOccurred(Key::Event::PRESSED)`.
+- `uint32_t getPressTime()`
+    - Returns the duration the key has been pressed.
+    - Returns `0` if the key is not pressed.
+- `uint16_t getIndex()`
+    - Returns the key's index.
+
+---
 
 ## About Custom Macros
-**Note:** _The term "macro" in the context of "`Do` macro" refers to a program executed in response to key events. Unless otherwise stated, "macro" will refer to this program hereafter._
+> **Note:** The term "macro" in "`Do` macro" refers to syntax replaced by the `#define` directive. Below, "macro" refers to the program executed in response to key events unless stated otherwise.
 
-- Custom macros are defined using the `Do` macro.
-    - When executed, the macro receives a reference to the `Key` object that triggered it as the `key` argument.
-- While custom processing can be implemented internally, it is recommended to keep the implementation as fast as possible since the macro is executed synchronously.
-- Macros are executed in ascending order of their index.
+- Define custom macros using the `Do` macro.
+    - Macros receive the `Key` object reference as the `key` argument when executed.
+- Macros can perform any desired processing, but since execution is synchronous, they should be implemented for quick processing.
+- Macros execute in order of ascending index.
 
-- To define macros that take parameters, you must define them in the form of a **function that returns a function (closure)**.
+- To define macros that take parameters, define them as **functions that return a macro (closures).**
 
-- Example of a custom macro:
+### Examples of Custom Macros
 ```cpp
 // A macro that types "Hello, world!" when the key is released
 auto greet = Do {
@@ -110,14 +133,15 @@ auto greet = Do {
         Keyboard.println("Hello, world!");
     }
 };
-// Alternatively, you can define macros using regular functions.
+// Alternatively, use a regular function
 void greet(Key key) {
     if (key.hasOccurred(Key::Event::FALLING_EDGE)) {
         Keyboard.println("Hello, world!");
     }
 }
 ```
-- Example of a parameterized custom macro:
+
+#### Parameterized Macro Example
 ```cpp
 // A macro that types a specified character while the key is pressed
 inline Macro pressTo(uint8_t pressKey) {
@@ -131,52 +155,68 @@ inline Macro pressTo(uint8_t pressKey) {
 }
 ```
 
-#### `macroDelay(ms, func)` Function
-- Used to implement delayed processing within a macro.
-- Pass the waiting time (in milliseconds) as the first argument and the function to execute as the second argument.
-- The second argument’s function can be concisely written using the `After` macro.
-- Avoid using the `delay()` function inside macros unless necessary, as it halts all processing. Instead, use this function as a substitute.
-- Time progression is determined via polling, so precision may not be high.
-- Example: ```macroDelay(1000, After { Keyboard.print("Hello, world!"); });```
+---
 
-### About the Layer Feature
-- You can use a specified number of layers when creating an instance of `MacroPad` (up to 255 layers).
-- When passing a keymap to the `MacroPad::init()` method, you must provide an array of keymaps for the specified number of layers (see sample code).
-- The `Layer` class manages the layers.
+### `macroDelay(ms, func)` Function
+- Use this function to introduce delays within macros.
+- Takes two arguments: wait time (in milliseconds) and the function to execute.
+- Use the `After` macro to define the second argument concisely.
+- Avoid using `delay()` in macros, as it halts all processing. Use `macroDelay()` instead unless absolutely necessary.
+- Time is determined via polling, so precision is limited.
+- Example:
+  ```cpp
+  macroDelay(1000, After { Keyboard.print("Hello, world!"); });
+  ```
+
+---
+
+### Layer Features
+- `MacroPad` supports up to 255 layers.
+- When passing a keymap to `MacroPad::init()`, provide an array of keymaps for the desired number of layers.
+- `Layer` class manages layers:
     - `set(layer)`
         - Switches to the specified layer.
-        - Does nothing if the specified layer does not exist.
-        - Example: ```macroPad.LAYERS.set(1)```
+        - Does nothing if the layer does not exist.
+        - Example: `macroPad.LAYERS.set(1)`
     - `reset()`
-        - Returns to the previous layer.
-        - May not behave as expected if the same layer is set twice consecutively.
+        - Reverts to the previous layer.
+        - May behave unexpectedly if a layer is revisited multiple times.
     - `uint8_t get()`
-        - Returns the current layer index.
-- The `LayerUtil` class simplifies creating macros for layer switching.
-    - `KeyAssign to(layer)`
-        - Returns a macro to switch to the specified layer when the key is pressed.
-        - Example: ```layer.to(1)```
-    - `KeyAssign back(layer)`
-        - Returns a macro to switch to the specified layer when the key is released.
-        - Example: ```layer.back(0)```
-    - `KeyAssign reset()`
+        - Returns the current layer's index.
+
+- The `LayerUtil` class simplifies layer-switching macro creation:
+    - `Macro to(layer)`
+        - Returns a macro to switch to the specified layer when pressed.
+        - Example: `layer.to(1)`
+    - `Macro back(layer)`
+        - Returns a macro to switch to the specified layer when released.
+        - Example: `layer.back(0)`
+    - `Macro reset()`
         - Returns a macro to revert to the previous layer.
-        - Example: ```layer.reset()```
+        - Example: `layer.reset()`
+
+---
+
+### Profile Features
+- Usage is similar to layers.
+    - Use `MacroPad::initWithProfiles()` instead of `MacroPad::init()` and pass a `ProfiledLayers` type (array of layers).
+    - Access profiles through `MacroPad::PROFILES`.
+
+---
 
 ### Key Input Processing
-- Key input in this library is implemented as a plugin system, allowing you to define custom key input algorithms by extending the `KeyReader` class.
-    - The instance passed to the `MacroPad` class constructor will be used to read key inputs.
+- The library uses a plugin-based system for key input. You can define custom input algorithms by inheriting from the `KeyReader` class.
+    - Pass the custom instance to the `MacroPad` constructor for custom key input processing.
 
-- The data structure that stores key input states is an array of unsigned 32-bit integers, with each bit representing the input state of a key (up to 32 keys per element).
+- Key states are stored as an array of unsigned 32-bit integers, with each bit representing a key's input state (up to 32 keys per array element).
     - The bit index corresponds to the keymap index.
-        - For instance, the 0th key in the keymap corresponds to the 0th bit of the 0th array element.
+        - For example, the 0th key in the keymap corresponds to the 0th bit of the 0th array element.
 
 #### `KeyReader` Class
-- An abstract class.
-- Classes that inherit from this class manage key inputs.
-- `uint32_t (&getStateData())[KEYBOARD_SIZE]` Method
-    - Returns a reference to the array that stores key input states.
-- `void read()` Method
-    - Updates the state of key inputs.
+- Abstract class for managing key input.
+- `uint32_t (&getStateData())[KEYBOARD_SIZE]`
+    - Returns a reference to the array storing key input data.
+- `void read()`
+    - Updates key states.
     - Called each time the `update()` method of the `MacroPad` instance is invoked.
-    - After executing this method, the `MacroPad` instance checks the array returned by the `getStateData()` method and processes key events accordingly.
+    - The `MacroPad` instance verifies the key events after executing this method and checks the array returned by `getStateData()`.

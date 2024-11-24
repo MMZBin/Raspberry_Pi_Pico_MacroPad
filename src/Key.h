@@ -35,6 +35,8 @@ template<uint16_t NUM_OF_KEYS>
 using Keymap = std::array<Macro, NUM_OF_KEYS>;
 template <uint16_t NUM_OF_KEYS, uint8_t NUM_OF_LAYERS>
 using LayeredKeymap = std::array<Keymap<NUM_OF_KEYS>, NUM_OF_LAYERS>;
+template <uint16_t NUM_OF_KEYS, uint8_t NUM_OF_LAYERS, uint8_t NUM_OF_PROFILES>
+using ProfiledLayers = std::array<LayeredKeymap<NUM_OF_KEYS, NUM_OF_LAYERS>, NUM_OF_PROFILES>;
 
 class Key {
 public:

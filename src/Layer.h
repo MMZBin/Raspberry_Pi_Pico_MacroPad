@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "Key.h"
-//#include "Combo.h"
 
 #define NONE nullptr
 
@@ -19,8 +18,10 @@ public:
     Layer(std::array<Key, NUM_OF_KEYS>& keys, LayerCallback onLayerChange=nullptr)
      : keys_(keys),onLayerChange_(onLayerChange), currentLayer_(0), preLayer_(0) {}
 
-    void init(LayeredKeymap<NUM_OF_KEYS, NUM_OF_LAYERS> layeredKeymap) {
+    void setProfile(LayeredKeymap<NUM_OF_KEYS, NUM_OF_LAYERS> layeredKeymap) {
         layers_ = layeredKeymap;
+
+        set(0);
     }
 
     void set(const uint8_t layer) {

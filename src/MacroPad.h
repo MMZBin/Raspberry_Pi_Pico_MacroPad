@@ -31,11 +31,12 @@
 #include "Key.h"
 #include "Delay.h"
 #include "Layer.h"
+#include "Profile.h"
 #include "Util.h"
 
 #define Do [](Key key)
 
-template<uint8_t NUM_OF_KEYS, uint8_t NUM_OF_LAYERS = 1>
+template<uint8_t NUM_OF_KEYS, uint8_t NUM_OF_LAYERS = 1, uint8_t NUM_OF_PROFILES = 1>
 class MacroPad {
 public:
     //static constexpr uint16_t NUM_OF_KEYS = ROWS * COLS;
@@ -43,7 +44,7 @@ public:
 
     MacroPad(KeyReader<NUM_OF_KEYS>& keyReader)
      : keyReader_(keyReader), KEY_STATE_DATA(keyReader_.getStateData()),
-       LAYERS(Layer<NUM_OF_KEYS, NUM_OF_LAYERS>(KEYS)) {
+       LAYERS(Layer<NUM_OF_KEYS, NUM_OF_LAYERS>(KEYS)), PROFILES(Profile<NUM_OF_KEYS, NUM_OF_LAYERS, NUM_OF_PROFILES>(LAYERS)) {
         static_assert((NUM_OF_LAYERS > 0), "'NUM_OF_LAYERS' must be 1 or greater.");
         static_assert((NUM_OF_KEYS < UINT16_MAX), "The total number of keys (including invalid keys) must be 65535 or less.");
 
@@ -53,9 +54,11 @@ public:
     }
 
     void init(LayeredKeymap<NUM_OF_KEYS, NUM_OF_LAYERS> layeredKeymap) {
-        LAYERS.init(layeredKeymap);
+        LAYERS.setProfile(layeredKeymap);
+    }
 
-        LAYERS.set(0);
+    void initWithProfiles(ProfiledLayers<NUM_OF_KEYS, NUM_OF_LAYERS, NUM_OF_PROFILES> profiledLayers) {
+        PROFILES.init(profiledLayers);
     }
 
     void update() {
@@ -75,10 +78,11 @@ public:
     }
 
     LayerUtil<NUM_OF_KEYS, NUM_OF_LAYERS> getLayerUtil() { return LayerUtil<NUM_OF_KEYS, NUM_OF_LAYERS>(LAYERS); }
-
+    ProfileUtil<NUM_OF_KEYS, NUM_OF_LAYERS, NUM_OF_PROFILES> getProfileUtil() { return ProfileUtil<NUM_OF_KEYS, NUM_OF_LAYERS, NUM_OF_PROFILES>(PROFILES); }
 
     std::array<Key, NUM_OF_KEYS> KEYS;
     Layer<NUM_OF_KEYS, NUM_OF_LAYERS> LAYERS;
+    Profile<NUM_OF_KEYS, NUM_OF_LAYERS, NUM_OF_PROFILES> PROFILES;
 
 private:
     //constexpr uint16_t NUM_OF_KEYS;

@@ -6,37 +6,71 @@
 #endif
 
 #include "Layer.h"
+#include "Profile.h"
 #include "Key.h"
 
 template<uint8_t NUM_OF_KEYS, uint8_t NUM_OF_LAYERS>
 class LayerUtil {
 public:
-    LayerUtil(Layer<NUM_OF_KEYS, NUM_OF_LAYERS>& layer) : layer_(layer) {}
+    LayerUtil(Layer<NUM_OF_KEYS, NUM_OF_LAYERS>& layers) : layers_(layers) {}
 
     inline Macro to(uint8_t layer) {
         return [this, layer](Key key) {
             if (key.hasOccurred(Key::Event::RISING_EDGE)) {
-                layer_.set(layer);
+                layers_.set(layer);
             }
         };
     }
     inline Macro back(uint8_t layer) {
         return [this, layer](Key key) {
             if (key.hasOccurred(Key::Event::FALLING_EDGE)) {
-                layer_.set(layer);
+                layers_.set(layer);
             }
         };
     }
     inline Macro reset() {
         return [this](Key key) {
             if (key.hasOccurred(Key::Event::RISING_EDGE)) {
-                layer_.reset();
+                layers_.reset();
             }
         };
     }
 
 private:
-    Layer<NUM_OF_KEYS, NUM_OF_LAYERS>& layer_;
+    Layer<NUM_OF_KEYS, NUM_OF_LAYERS>& layers_;
+};
+
+template<uint8_t NUM_OF_KEYS, uint8_t NUM_OF_LAYERS, uint8_t NUM_OF_PROFILES>
+class ProfileUtil {
+public:
+    ProfileUtil(Profile<NUM_OF_KEYS, NUM_OF_LAYERS, NUM_OF_PROFILES>& profiles) : profiles_(profiles) {}
+
+    inline Macro to(uint8_t profile) {
+        return [this, profile](Key key) {
+            if (key.hasOccurred(Key::Event::RISING_EDGE)) {
+                profiles_.set(profile);
+            }
+        };
+    }
+
+    inline Macro back(uint8_t profile) {
+        return [this, profile](Key key) {
+            if (key.hasOccurred(Key::Event::FALLING_EDGE)) {
+                profiles_.set(profile);
+            }
+        };
+    }
+
+    inline Macro reset() {
+        return [this](Key key) {
+            if (key.hasOccurred(Key::Event::RISING_EDGE)) {
+                profiles_.reset();
+            }
+        };
+    }
+
+private:
+    Profile<NUM_OF_KEYS, NUM_OF_LAYERS, NUM_OF_PROFILES>& profiles_;
 };
 
 #define PRESS_A pressTo('a')
